@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+      background: rgba(20, 20, 35, 0.88);
+      color: #eee;
+      padding: 8px 12px;
+      border-radius: 8px;
+      user-select: none;
+      -webkit-app-region: drag;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    #content { display: flex; gap: 8px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div id="content">₿ --- | ❓ --- | M ---</div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const FEAR_EMOJIS = [
+      { max: 25, emoji: '😨' },
+      { max: 45, emoji: '😟' },
+      { max: 55, emoji: '😐' },
+      { max: 75, emoji: '😏' },
+      { max: 100, emoji: '🤑' },
+    ];
+
+    function fearEmoji(v) {
+      const b = FEAR_EMOJIS.find(e => v <= e.max);
+      return b ? b.emoji : '🤑';
+    }
+
+    ipcRenderer.on('data-update', (_, data) => {
+      const price = data.price != null
+        ? (data.price >= 1000 ? `₿ ${Math.round(data.price / 1000)}K` : `₿ ${Math.round(data.price)}`)
+        : '₿ ---';
+      const fg = data.fearGreed != null
+        ? `${fearEmoji(data.fearGreed)} ${data.fearGreed}`
+        : '❓ ---';
+      const mayer = data.mayerMultiple != null
+        ? `M ${data.mayerMultiple.toFixed(2)}`
+        : 'M ---';
+      document.getElementById('content').textContent = `${price} | ${fg} | ${mayer}`;
+    });
+  </script>
+</body>
+</html>
