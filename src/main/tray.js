@@ -27,7 +27,7 @@ function formatMayer(value) {
 }
 
 class TrayController {
-  constructor({ onQuit, onTogglePanel, onToggleWidget }) {
+  constructor({ onQuit, onTogglePanel, onToggleWidget, startupService }) {
     const iconPath = path.join(__dirname, '../../src/assets/bitcoin.png');
     const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
     this._tray = new Tray(icon);
@@ -35,13 +35,14 @@ class TrayController {
     this._onQuit = onQuit;
     this._onToggleWidget = onToggleWidget;
     this._widgetEnabled = false;
+    this._startupService = startupService || null;
 
     this._tray.on('click', () => this._onTogglePanel());
     this._buildMenu();
   }
 
   _buildMenu() {
-    const menu = Menu.buildFromTemplate([
+    const items = [
       {
         label: this._widgetEnabled ? 'Hide Widget' : 'Show Widget',
         click: () => {
@@ -50,9 +51,24 @@ class TrayController {
           this._buildMenu();
         },
       },
-      { type: 'separator' },
-      { label: 'Quit', click: () => this._onQuit() },
-    ]);
+    ];
+
+    if (this._startupService) {
+      items.push({
+        label: 'Start at login',
+        type: 'checkbox',
+        checked: this._startupService.isEnabled(),
+        click: () => {
+          this._startupService.setEnabled(!this._startupService.isEnabled());
+          this._buildMenu();
+        },
+      });
+    }
+
+    items.push({ type: 'separator' });
+    items.push({ label: 'Quit', click: () => this._onQuit() });
+
+    const menu = Menu.buildFromTemplate(items);
     this._tray.setContextMenu(menu);
   }
 

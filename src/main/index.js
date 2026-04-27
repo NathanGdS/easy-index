@@ -8,12 +8,13 @@ const { MayerMultipleEngine } = require('./services/MayerMultipleEngine');
 const { SignalEngine } = require('./services/SignalEngine');
 const { AlertService } = require('./services/AlertService');
 const { CacheStore } = require('./services/CacheStore');
-
-app.setLoginItemSettings({ openAtLogin: false });
+const { StartupService } = require('./services/StartupService');
+const { UpdateService } = require('./services/UpdateService');
 app.on('window-all-closed', () => { /* keep alive */ });
 
 app.whenReady().then(() => {
   const cache = new CacheStore();
+  const startupService = new StartupService({ app, cache });
   const market = new MarketDataService();
   const alertService = new AlertService({
     notify: ({ title, body }) => new Notification({ title, body }).show(),
@@ -38,6 +39,7 @@ app.whenReady().then(() => {
 
   const tray = new TrayController({
     onQuit: () => app.quit(),
+    startupService,
     onTogglePanel: () => panel.toggle({
       price: state.price,
       fearGreed: state.fearGreed?.value ?? null,
@@ -84,4 +86,13 @@ app.whenReady().then(() => {
   if (state.price) broadcast();
 
   scheduler.start();
+
+  try {
+    const { autoUpdater } = require('electron-updater');
+    const updater = new UpdateService({ autoUpdater });
+    updater.onUpdateAvailable(() => new Notification({ title: 'Easy Index', body: 'Update available' }).show());
+    updater.onUpdateDownloaded(() => new Notification({ title: 'Easy Index', body: 'Restart to update' }).show());
+    updater.onError((err) => console.error('updater error:', err));
+    updater.checkForUpdates();
+  } catch (_) { /* electron-updater not available in dev */ }
 });
