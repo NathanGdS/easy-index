@@ -37,15 +37,43 @@
   </div>
   <script>
     const { ipcRenderer } = require('electron');
+
+    function fearColor(v) {
+      if (v <= 25) return '#e74c3c';
+      if (v <= 45) return '#e67e22';
+      if (v <= 55) return '#95a5a6';
+      if (v <= 75) return '#2ecc71';
+      return '#27ae60';
+    }
+
+    function mayerColor(v) {
+      if (v <= 0.8) return '#3498db';
+      if (v <= 1.0) return '#2ecc71';
+      if (v <= 1.5) return '#f39c12';
+      return '#e74c3c';
+    }
+
     ipcRenderer.on('data-update', (_, data) => {
-      document.getElementById('price').textContent = data.price != null
+      const priceEl = document.getElementById('price');
+      const fgEl = document.getElementById('fg');
+      const mayerEl = document.getElementById('mayer');
+
+      priceEl.textContent = data.price != null
         ? `$${data.price.toLocaleString()}` : '---';
-      document.getElementById('fg').textContent = data.fearGreed ?? '---';
+      fgEl.textContent = data.fearGreed ?? '---';
       document.getElementById('fg-label').textContent = data.fearGreedLabel ?? '';
-      document.getElementById('mayer').textContent = data.mayerMultiple != null
+      mayerEl.textContent = data.mayerMultiple != null
         ? data.mayerMultiple.toFixed(2) : '---';
       document.getElementById('mayer-label').textContent = data.mayerLabel ?? '';
+
+      if (data.fearGreed != null) fgEl.style.color = fearColor(data.fearGreed);
+      if (data.mayerMultiple != null) {
+        const mc = mayerColor(data.mayerMultiple);
+        mayerEl.style.color = mc;
+        priceEl.style.color = mc;
+      }
     });
+
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') window.close();
     });
