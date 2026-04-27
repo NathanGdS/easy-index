@@ -1,4 +1,5 @@
 const { app, Notification } = require('electron');
+app.setName('Easy Index');
 const { TrayController } = require('./tray');
 const { PanelController } = require('./panel');
 const { WidgetController } = require('./widget');
