@@ -26,9 +26,10 @@ const BrowserWindow = jest.fn().mockImplementation(() => ({
   show: jest.fn(),
   close: jest.fn(),
   destroy: jest.fn(),
+  isDestroyed: jest.fn().mockReturnValue(false),
   isVisible: jest.fn().mockReturnValue(false),
   setAlwaysOnTop: jest.fn(),
-  webContents: { send: jest.fn() },
+  webContents: { send: jest.fn(), on: jest.fn() },
 }));
 
 const ipcMain = {
