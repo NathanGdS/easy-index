@@ -16,9 +16,23 @@
       white-space: nowrap;
     }
     #content { display: flex; gap: 8px; align-items: center; }
+    #close-btn {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 10px;
+      color: #666;
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    #close-btn:hover { color: #e74c3c; background: rgba(231, 76, 60, 0.15); }
   </style>
 </head>
 <body>
+  <div id="close-btn">✕</div>
   <div id="content">₿ --- | ❓ --- | M ---</div>
   <script>
     const { ipcRenderer } = require('electron');
@@ -34,6 +48,8 @@
       const b = FEAR_EMOJIS.find(e => v <= e.max);
       return b ? b.emoji : '🤑';
     }
+
+    document.getElementById('close-btn').addEventListener('click', () => window.close());
 
     ipcRenderer.on('data-update', (_, data) => {
       const price = data.price != null
