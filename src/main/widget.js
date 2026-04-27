@@ -4,6 +4,7 @@ const path = require('path');
 class WidgetController {
   constructor() {
     this._window = null;
+    this._lastData = null;
   }
 
   show() {
@@ -27,6 +28,14 @@ class WidgetController {
 
     this._window.loadFile(path.join(__dirname, '../../src/renderer/widget.html'));
     this._window.setAlwaysOnTop(true, 'screen-saver');
+
+    this._window.webContents.on('did-finish-load', () => {
+      if (this._lastData) {
+        this._window.webContents.send('data-update', this._lastData);
+      }
+    });
+
+    this._window.on('closed', () => { this._window = null; });
   }
 
   hide() {
@@ -37,6 +46,7 @@ class WidgetController {
   }
 
   update(data) {
+    this._lastData = data;
     if (this._window && !this._window.isDestroyed()) {
       this._window.webContents.send('data-update', data);
     }
