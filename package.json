@@ -55,6 +55,20 @@
       ],
       "icon": "assets/icon.ico"
     },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Easy Index",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Easy-Index-${version}-${os}-${arch}-Installer.${ext}"
+    },
+    "portable": {
+      "artifactName": "Easy-Index-${version}-${os}-${arch}-Portable.${ext}"
+    },
     "mac": {
       "target": "dmg",
       "icon": "assets/icon.icns"
