@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+      background: rgba(20, 20, 35, 0.88);
+      color: #eee;
+      padding: 8px 12px;
+      border-radius: 8px;
+      user-select: none;
+      -webkit-app-region: drag;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    #content { display: flex; gap: 8px; align-items: center; }
+    #close-btn {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 10px;
+      color: #666;
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    #close-btn:hover { color: #e74c3c; background: rgba(231, 76, 60, 0.15); }
+  </style>
+</head>
+<body>
+  <div id="close-btn">✕</div>
+  <div id="content">₿ --- | ❓ --- | M ---</div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const FEAR_EMOJIS = [
+      { max: 25, emoji: '😨' },
+      { max: 45, emoji: '😟' },
+      { max: 55, emoji: '😐' },
+      { max: 75, emoji: '😏' },
+      { max: 100, emoji: '🤑' },
+    ];
+
+    function fearEmoji(v) {
+      const b = FEAR_EMOJIS.find(e => v <= e.max);
+      return b ? b.emoji : '🤑';
+    }
+
+    document.getElementById('close-btn').addEventListener('click', () => window.close());
+
+    ipcRenderer.on('data-update', (_, data) => {
+      const price = data.price != null
+        ? (data.price >= 1000 ? `₿ ${Math.round(data.price / 1000)}K` : `₿ ${Math.round(data.price)}`)
+        : '₿ ---';
+      const fg = data.fearGreed != null
+        ? `${fearEmoji(data.fearGreed)} ${data.fearGreed}`
+        : '❓ ---';
+      const mayer = data.mayerMultiple != null
+        ? `M ${data.mayerMultiple.toFixed(2)}`
+        : 'M ---';
+      document.getElementById('content').textContent = `${price} | ${fg} | ${mayer}`;
+    });
+  </script>
+</body>
+</html>
