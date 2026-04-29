@@ -7,6 +7,11 @@ class UpdateService {
     this._updater.checkForUpdatesAndNotify();
   }
 
+  startPeriodicCheck(intervalMs = 60 * 60 * 1000) {
+    this.checkForUpdates();
+    setInterval(() => this.checkForUpdates(), intervalMs);
+  }
+
   onUpdateAvailable(cb) {
     this._updater.on('update-available', cb);
   }
