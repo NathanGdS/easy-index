@@ -35,12 +35,30 @@ app.whenReady().then(() => {
     return mayerMultiple;
   }
 
+  let updater = null;
+  try {
+    const { autoUpdater } = require('electron-updater');
+    updater = new UpdateService({ autoUpdater });
+    updater.onUpdateAvailable(() =>
+      new Notification({ title: 'Easy Index', body: 'Update available — downloading...' }).show()
+    );
+    updater.onUpdateDownloaded(() =>
+      new Notification({ title: 'Easy Index', body: 'Ready to install — restart the app.' }).show()
+    );
+    updater.onUpdateNotAvailable(() =>
+      new Notification({ title: 'Easy Index', body: "You're up to date." }).show()
+    );
+    updater.onError((err) => console.error('updater error:', err));
+    updater.startPeriodicCheck();
+  } catch (_) { /* electron-updater not available in dev */ }
+
   const panel = new PanelController();
   const widget = new WidgetController();
 
   const tray = new TrayController({
     onQuit: () => app.quit(),
     startupService,
+    onCheckForUpdates: updater ? () => updater.checkForUpdates() : null,
     onTogglePanel: () => {
       const mayer = currentMayer();
       const fg = state.fearGreed?.value ?? null;
@@ -88,12 +106,4 @@ app.whenReady().then(() => {
 
   scheduler.start();
 
-  try {
-    const { autoUpdater } = require('electron-updater');
-    const updater = new UpdateService({ autoUpdater });
-    updater.onUpdateAvailable(() => new Notification({ title: 'Easy Index', body: 'Update available' }).show());
-    updater.onUpdateDownloaded(() => new Notification({ title: 'Easy Index', body: 'Restart to update' }).show());
-    updater.onError((err) => console.error('updater error:', err));
-    updater.startPeriodicCheck();
-  } catch (_) { /* electron-updater not available in dev */ }
 });
