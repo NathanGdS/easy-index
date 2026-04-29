@@ -76,7 +76,7 @@ function formatTooltip(price, fearGreed, mayerMultiple) {
 }
 
 class TrayController {
-  constructor({ onQuit, onTogglePanel, onToggleWidget, startupService }) {
+  constructor({ onQuit, onTogglePanel, onToggleWidget, startupService, onCheckForUpdates }) {
     const iconPath = path.join(__dirname, '../../src/assets/bitcoin.png');
     const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
     this._tray = new Tray(icon);
@@ -85,6 +85,7 @@ class TrayController {
     this._onToggleWidget = onToggleWidget;
     this._widgetEnabled = false;
     this._startupService = startupService || null;
+    this._onCheckForUpdates = onCheckForUpdates || null;
 
     this._tray.on('click', () => this._onTogglePanel());
     this._buildMenu();
@@ -112,6 +113,10 @@ class TrayController {
           this._buildMenu();
         },
       });
+    }
+
+    if (this._onCheckForUpdates) {
+      items.push({ label: 'Check for Updates', click: () => this._onCheckForUpdates() });
     }
 
     items.push({ type: 'separator' });
