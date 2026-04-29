@@ -46,23 +46,24 @@ class PanelController {
     }
   }
 
-  _enrichData({ price, fearGreed, mayerMultiple }) {
+  _enrichData({ price, fearGreed, mayerMultiple, marketState = null }) {
     return {
       price,
       fearGreed,
       fearGreedLabel: fearGreed != null ? fearLabel(fearGreed) : null,
       mayerMultiple,
       mayerLabel: mayerMultiple != null ? mayerLabel(mayerMultiple) : null,
+      marketState,
     };
   }
 
   _open(data) {
     const { workAreaSize } = screen.getPrimaryDisplay();
     this._window = new BrowserWindow({
-      width: 280,
-      height: 200,
-      x: workAreaSize.width - 290,
-      y: workAreaSize.height - 210,
+      width: 300,
+      height: 260,
+      x: workAreaSize.width - 310,
+      y: workAreaSize.height - 270,
       frame: false,
       resizable: false,
       alwaysOnTop: true,
