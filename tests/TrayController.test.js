@@ -1,4 +1,45 @@
-const { formatTrayLabel } = require('../src/main/tray');
+const { Menu } = require('electron');
+const { TrayController, formatTrayLabel } = require('../src/main/tray');
+
+function makeController(opts = {}) {
+  return new TrayController({
+    onQuit: jest.fn(),
+    onTogglePanel: jest.fn(),
+    onToggleWidget: jest.fn(),
+    startupService: null,
+    ...opts,
+  });
+}
+
+describe('TrayController menu', () => {
+  beforeEach(() => {
+    Menu.buildFromTemplate.mockClear();
+  });
+
+  it('includes "Check for Updates" item when onCheckForUpdates provided', () => {
+    const cb = jest.fn();
+    makeController({ onCheckForUpdates: cb });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const item = template.find(i => i.label === 'Check for Updates');
+    expect(item).toBeDefined();
+  });
+
+  it('omits "Check for Updates" item when onCheckForUpdates is null', () => {
+    makeController({ onCheckForUpdates: null });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const item = template.find(i => i.label === 'Check for Updates');
+    expect(item).toBeUndefined();
+  });
+
+  it('"Check for Updates" click fires onCheckForUpdates callback', () => {
+    const cb = jest.fn();
+    makeController({ onCheckForUpdates: cb });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const item = template.find(i => i.label === 'Check for Updates');
+    item.click();
+    expect(cb).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('formatTrayLabel', () => {
   it('prefixes STRONG_BUY with 🔵', () => {

@@ -34,4 +34,10 @@ describe('UpdateService', () => {
     service.onError(cb);
     expect(mockAutoUpdater.on).toHaveBeenCalledWith('error', cb);
   });
+
+  it('onUpdateNotAvailable registers listener for update-not-available event', () => {
+    const cb = jest.fn();
+    service.onUpdateNotAvailable(cb);
+    expect(mockAutoUpdater.on).toHaveBeenCalledWith('update-not-available', cb);
+  });
 });

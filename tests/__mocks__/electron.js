@@ -43,7 +43,7 @@ const Notification = jest.fn().mockImplementation(() => ({
 
 const nativeImage = {
   createEmpty: jest.fn().mockReturnValue({}),
-  createFromPath: jest.fn().mockReturnValue({}),
+  createFromPath: jest.fn().mockReturnValue({ resize: jest.fn().mockReturnValue({}) }),
 };
 
 const screen = {
