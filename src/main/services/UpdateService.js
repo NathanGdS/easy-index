@@ -20,6 +20,10 @@ class UpdateService {
     this._updater.on('update-downloaded', cb);
   }
 
+  onUpdateNotAvailable(cb) {
+    this._updater.on('update-not-available', cb);
+  }
+
   onError(cb) {
     this._updater.on('error', cb);
   }
