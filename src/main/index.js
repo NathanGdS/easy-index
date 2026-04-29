@@ -41,11 +41,12 @@ app.whenReady().then(() => {
   const tray = new TrayController({
     onQuit: () => app.quit(),
     startupService,
-    onTogglePanel: () => panel.toggle({
-      price: state.price,
-      fearGreed: state.fearGreed?.value ?? null,
-      mayerMultiple: currentMayer(),
-    }),
+    onTogglePanel: () => {
+      const mayer = currentMayer();
+      const fg = state.fearGreed?.value ?? null;
+      const marketState = SignalEngine.classifyMarketState(fg, mayer);
+      panel.toggle({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState });
+    },
     onToggleWidget: (enabled) => {
       if (enabled) widget.show();
       else widget.hide();
@@ -56,11 +57,10 @@ app.whenReady().then(() => {
     const mayer = currentMayer();
     const fg = state.fearGreed?.value ?? null;
 
-    tray.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer });
-    panel.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer });
-    widget.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer });
-
     const marketState = SignalEngine.classifyMarketState(fg, mayer);
+    tray.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState });
+    panel.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState });
+    widget.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer });
     const { shouldAlert, type } = SignalEngine.shouldAlert(marketState);
     if (shouldAlert) alertService.trigger(type);
   }
@@ -94,6 +94,6 @@ app.whenReady().then(() => {
     updater.onUpdateAvailable(() => new Notification({ title: 'Easy Index', body: 'Update available' }).show());
     updater.onUpdateDownloaded(() => new Notification({ title: 'Easy Index', body: 'Restart to update' }).show());
     updater.onError((err) => console.error('updater error:', err));
-    updater.checkForUpdates();
+    updater.startPeriodicCheck();
   } catch (_) { /* electron-updater not available in dev */ }
 });
