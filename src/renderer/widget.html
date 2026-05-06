@@ -33,7 +33,15 @@
 </head>
 <body>
   <div id="close-btn">✕</div>
-  <div id="content">₿ --- | ❓ --- | M ---</div>
+  <div id="content">
+    <span id="widget-price">₿ ---</span>
+    <span>|</span>
+    <span id="widget-fg">❓ ---</span>
+    <span>|</span>
+    <span id="widget-mayer">M ---</span>
+    <span>|</span>
+    <span id="widget-mvrv" style="color: gray;">Z —</span>
+  </div>
   <script>
     const { ipcRenderer } = require('electron');
     const FEAR_EMOJIS = [
@@ -52,16 +60,25 @@
     document.getElementById('close-btn').addEventListener('click', () => window.close());
 
     ipcRenderer.on('data-update', (_, data) => {
-      const price = data.price != null
+      const priceEl = document.getElementById('widget-price');
+      priceEl.textContent = data.price != null
         ? (data.price >= 1000 ? `₿ ${Math.round(data.price / 1000)}K` : `₿ ${Math.round(data.price)}`)
         : '₿ ---';
-      const fg = data.fearGreed != null
+
+      const fgEl = document.getElementById('widget-fg');
+      fgEl.textContent = data.fearGreed != null
         ? `${fearEmoji(data.fearGreed)} ${data.fearGreed}`
         : '❓ ---';
-      const mayer = data.mayerMultiple != null
+
+      const mayerEl = document.getElementById('widget-mayer');
+      mayerEl.textContent = data.mayerMultiple != null
         ? `M ${data.mayerMultiple.toFixed(2)}`
         : 'M ---';
-      document.getElementById('content').textContent = `${price} | ${fg} | ${mayer}`;
+
+      const mvrvEl = document.getElementById('widget-mvrv');
+      const { mvrvZScore, mvrvColor } = data;
+      mvrvEl.style.color = mvrvColor || 'gray';
+      mvrvEl.textContent = mvrvZScore != null ? `Z ${mvrvZScore.toFixed(2)}` : 'Z —';
     });
   </script>
 </body>

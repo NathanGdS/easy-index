@@ -27,4 +27,51 @@ describe('PanelController._enrichData', () => {
     expect(result.mayerLabel).toBeNull();
     expect(result.marketState).toBeNull();
   });
+
+  it('passes mvrvZScore through in result', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89, mvrvZScore: 2.5 });
+    expect(result.mvrvZScore).toBe(2.5);
+  });
+
+  it('classifies mvrvZScore < 1 as Accumulation with green color', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89, mvrvZScore: 0.5 });
+    expect(result.mvrvLabel).toBe('Accumulation');
+    expect(result.mvrvColor).toBe('green');
+  });
+
+  it('classifies mvrvZScore between 1 and 3 as Distribution', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89, mvrvZScore: 2.0 });
+    expect(result.mvrvLabel).toBe('Distribution');
+    expect(result.mvrvColor).toBe('#f5a623');
+  });
+
+  it('classifies mvrvZScore >= 3 as Bubble with red color', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89, mvrvZScore: 4.0 });
+    expect(result.mvrvLabel).toBe('Bubble');
+    expect(result.mvrvColor).toBe('red');
+  });
+
+  it('sets mvrvLabel to dash and mvrvColor to gray when mvrvZScore is null', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89, mvrvZScore: null });
+    expect(result.mvrvLabel).toBe('—');
+    expect(result.mvrvColor).toBe('gray');
+  });
+
+  it('sets mvrvLabel to dash and mvrvColor to gray when mvrvZScore is undefined', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89 });
+    expect(result.mvrvLabel).toBe('—');
+    expect(result.mvrvColor).toBe('gray');
+  });
+
+  it('sets mvrvLabel to dash and mvrvColor to gray when mvrvZScore is NaN', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89, mvrvZScore: NaN });
+    expect(result.mvrvLabel).toBe('—');
+    expect(result.mvrvColor).toBe('gray');
+  });
+
+  it('classifies mvrvZScore = 0 as Accumulation with green color', () => {
+    const result = panel._enrichData({ price: 75000, fearGreed: 26, mayerMultiple: 0.89, mvrvZScore: 0 });
+    expect(result.mvrvLabel).toBe('Accumulation');
+    expect(result.mvrvColor).toBe('green');
+  });
 });

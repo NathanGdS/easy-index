@@ -88,6 +88,15 @@
     <div class="zone" id="mayer-zone"></div>
   </div>
 
+  <div class="section-label">MVRV Z-Score</div>
+  <div class="bar-track">
+    <div class="bar-fill" id="mvrv-bar" style="width: 0%;"></div>
+  </div>
+  <div class="val-row">
+    <div class="val" id="mvrv-value">--</div>
+    <div class="zone" id="mvrv-label">--</div>
+  </div>
+
   <script>
     const { ipcRenderer } = require('electron');
 
@@ -174,6 +183,23 @@
         mayerVal.style.color = '';
       }
       mayerZone.textContent = data.mayerLabel ?? '';
+
+      // MVRV Z-Score
+      const mvrvBar   = document.getElementById('mvrv-bar');
+      const mvrvValue = document.getElementById('mvrv-value');
+      const mvrvLabel = document.getElementById('mvrv-label');
+      if (data.mvrvZScore != null) {
+        const pct = Math.min(Math.max(data.mvrvZScore / 4, 0), 1) * 100;
+        mvrvBar.style.width = pct + '%';
+        mvrvBar.style.background = data.mvrvColor ?? '#95a5a6';
+        mvrvValue.textContent = data.mvrvZScore.toFixed(2);
+        mvrvValue.style.color = data.mvrvColor ?? '';
+      } else {
+        mvrvBar.style.width = '0%';
+        mvrvValue.textContent = '—';
+        mvrvValue.style.color = '';
+      }
+      mvrvLabel.textContent = data.mvrvLabel ?? '';
     });
 
     document.addEventListener('keydown', e => {
