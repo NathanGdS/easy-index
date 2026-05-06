@@ -4,6 +4,7 @@ const COINGECKO_PRICE = 'https://api.coingecko.com/api/v3/simple/price?ids=bitco
 const BINANCE_PRICE = 'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT';
 const FEAR_GREED_URL = 'https://api.alternative.me/fng/?limit=1';
 const HISTORICAL_URL = 'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=200&interval=daily';
+const MVRV_ZSCORE_BASE = 'https://api.bitcoin-data.com/v1/mvrv-zscore';
 
 async function fetchWithTimeout(url, ms = 8000) {
   const controller = new AbortController();
@@ -37,6 +38,12 @@ class MarketDataService {
   async fetchHistoricalPrices() {
     const data = await fetchWithTimeout(HISTORICAL_URL);
     return data.prices.map(([, price]) => price);
+  }
+
+  async fetchMVRVZScore(date) {
+    const dateStr = date instanceof Date ? date.toISOString().slice(0, 10) : date;
+    const data = await fetchWithTimeout(`${MVRV_ZSCORE_BASE}/${dateStr}`);
+    return data.mvrvZscore;
   }
 }
 

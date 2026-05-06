@@ -7,16 +7,19 @@ describe('DataScheduler', () => {
   let mockFetchPrice;
   let mockFetchFearGreed;
   let mockFetchHistorical;
+  let mockFetchMVRVZScore;
 
   beforeEach(() => {
     mockFetchPrice = jest.fn().mockResolvedValue(67000);
     mockFetchFearGreed = jest.fn().mockResolvedValue({ value: 24, label: 'Fear' });
     mockFetchHistorical = jest.fn().mockResolvedValue([50000, 51000]);
+    mockFetchMVRVZScore = jest.fn().mockResolvedValue(2.5);
 
     scheduler = new DataScheduler({
       fetchPrice: mockFetchPrice,
       fetchFearGreed: mockFetchFearGreed,
       fetchHistorical: mockFetchHistorical,
+      fetchMVRVZScore: mockFetchMVRVZScore,
     });
   });
 
@@ -135,6 +138,82 @@ describe('DataScheduler', () => {
 
       // handler should have been called at least once with 67000
       expect(handler).toHaveBeenCalledWith(expect.objectContaining({ price: 67000 }));
+    });
+  });
+
+  describe('MVRV polling', () => {
+    const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
+    // Drain the async chain: _pollPrice (1 await) -> _pollMVRVIfNeeded (1 await) -> fetchMVRVZScore (1 await)
+    const flush = async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    };
+
+    it('fetches MVRV on first tick and emits mvrv-updated', async () => {
+      const handler = jest.fn();
+      scheduler.on('mvrv-updated', handler);
+
+      scheduler.start();
+      await flush();
+
+      expect(mockFetchMVRVZScore).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledWith({ mvrvZScore: 2.5 });
+    });
+
+    it('does not re-fetch MVRV within 4 hours but re-emits cached value', async () => {
+      const handler = jest.fn();
+      scheduler.on('mvrv-updated', handler);
+
+      scheduler.start();
+      await flush();
+
+      // Advance one 60s tick (still within 4h window)
+      jest.advanceTimersByTime(60000);
+      await flush();
+
+      expect(mockFetchMVRVZScore).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(2);
+      expect(handler).toHaveBeenLastCalledWith({ mvrvZScore: 2.5 });
+    });
+
+    it('re-fetches MVRV after 4 hours', async () => {
+      mockFetchMVRVZScore
+        .mockResolvedValueOnce(2.5)
+        .mockResolvedValueOnce(3.1);
+
+      const handler = jest.fn();
+      scheduler.on('mvrv-updated', handler);
+
+      scheduler.start();
+      await flush();
+
+      // Advance to just before 4h (still within cache window) — stays at 1 fetch
+      jest.advanceTimersByTime(FOUR_HOURS_MS - 60000);
+      await flush();
+      expect(mockFetchMVRVZScore).toHaveBeenCalledTimes(1);
+
+      // Advance one more tick, crossing the 4h threshold — triggers second fetch
+      jest.advanceTimersByTime(60000);
+      await flush();
+
+      expect(mockFetchMVRVZScore).toHaveBeenCalledTimes(2);
+      expect(handler).toHaveBeenLastCalledWith({ mvrvZScore: 3.1 });
+    });
+
+    it('re-emits cached MVRV on fetch failure', async () => {
+      const handler = jest.fn();
+      scheduler.on('mvrv-updated', handler);
+
+      scheduler.start();
+      await flush();
+
+      // Simulate failure on second fetch (after 4h)
+      mockFetchMVRVZScore.mockRejectedValue(new Error('API down'));
+      jest.advanceTimersByTime(FOUR_HOURS_MS);
+      await flush();
+
+      expect(handler).toHaveBeenLastCalledWith({ mvrvZScore: 2.5 });
     });
   });
 });

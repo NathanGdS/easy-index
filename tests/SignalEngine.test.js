@@ -43,12 +43,42 @@ describe('SignalEngine', () => {
       expect(SignalEngine.classifyMarketState(50, null)).toBeNull();
     });
 
+    it('accepts optional mvrvZScore without changing any return value', () => {
+      expect(SignalEngine.classifyMarketState(15, 0.7, 5.0)).toBe('STRONG_BUY');
+      expect(SignalEngine.classifyMarketState(85, 1.6, -1.0)).toBe('OVERHEATED');
+      expect(SignalEngine.classifyMarketState(50, 1.0, 0)).toBe('NEUTRAL');
+      expect(SignalEngine.classifyMarketState(25, 1.0, 99)).toBe('FEARFUL');
+      expect(SignalEngine.classifyMarketState(75, 1.2, -99)).toBe('GREEDY');
+    });
+
     it('returns Fearful when F&G 20-30 range neutral Mayer', () => {
       expect(SignalEngine.classifyMarketState(25, 1.0)).toBe('FEARFUL');
     });
 
     it('returns Greedy when F&G 70-80 range neutral Mayer', () => {
       expect(SignalEngine.classifyMarketState(75, 1.2)).toBe('GREEDY');
+    });
+  });
+
+  describe('with mvrvZScore third argument (v1 compat)', () => {
+    it('returns STRONG_BUY when fearGreed=10, mayerMultiple=0.7, mvrvZScore=0.5', () => {
+      expect(SignalEngine.classifyMarketState(10, 0.7, 0.5)).toBe('STRONG_BUY');
+    });
+
+    it('returns OVERHEATED when fearGreed=85, mayerMultiple=1.6, mvrvZScore=4.5', () => {
+      expect(SignalEngine.classifyMarketState(85, 1.6, 4.5)).toBe('OVERHEATED');
+    });
+
+    it('returns FEARFUL when fearGreed=15, mayerMultiple=1.0, mvrvZScore=1.2', () => {
+      expect(SignalEngine.classifyMarketState(15, 1.0, 1.2)).toBe('FEARFUL');
+    });
+
+    it('returns GREEDY when fearGreed=85, mayerMultiple=1.0, mvrvZScore=2.8', () => {
+      expect(SignalEngine.classifyMarketState(85, 1.0, 2.8)).toBe('GREEDY');
+    });
+
+    it('returns NEUTRAL when fearGreed=50, mayerMultiple=1.0, mvrvZScore=1.5', () => {
+      expect(SignalEngine.classifyMarketState(50, 1.0, 1.5)).toBe('NEUTRAL');
     });
   });
 

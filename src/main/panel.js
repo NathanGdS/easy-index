@@ -1,5 +1,6 @@
 const { BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
+const { MVRVZScoreEngine } = require('./services/MVRVZScoreEngine');
 
 const FEAR_LABELS = [
   { max: 25, label: 'Extreme Fear' },
@@ -46,7 +47,17 @@ class PanelController {
     }
   }
 
-  _enrichData({ price, fearGreed, mayerMultiple, marketState = null }) {
+  _enrichData({ price, fearGreed, mayerMultiple, marketState = null, mvrvZScore = null }) {
+    let mvrvLabel;
+    let mvrvColor;
+    if (mvrvZScore == null || Number.isNaN(mvrvZScore)) {
+      mvrvLabel = '—';
+      mvrvColor = 'gray';
+    } else {
+      const zone = MVRVZScoreEngine.classifyZone(mvrvZScore);
+      mvrvLabel = zone.label;
+      mvrvColor = zone.color;
+    }
     return {
       price,
       fearGreed,
@@ -54,6 +65,9 @@ class PanelController {
       mayerMultiple,
       mayerLabel: mayerMultiple != null ? mayerLabel(mayerMultiple) : null,
       marketState,
+      mvrvZScore,
+      mvrvLabel,
+      mvrvColor,
     };
   }
 

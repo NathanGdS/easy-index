@@ -25,6 +25,7 @@ app.whenReady().then(() => {
     price: cache.get('price'),
     fearGreed: cache.get('fearGreed'),
     historical: cache.get('historical') || [],
+    mvrvZScore: cache.get('mvrvZScore') ?? null,
   };
 
   function currentMayer() {
@@ -63,7 +64,7 @@ app.whenReady().then(() => {
       const mayer = currentMayer();
       const fg = state.fearGreed?.value ?? null;
       const marketState = SignalEngine.classifyMarketState(fg, mayer);
-      panel.toggle({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState });
+      panel.toggle({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState, mvrvZScore: state.mvrvZScore });
     },
     onToggleWidget: (enabled) => {
       if (enabled) widget.show();
@@ -77,8 +78,8 @@ app.whenReady().then(() => {
 
     const marketState = SignalEngine.classifyMarketState(fg, mayer);
     tray.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState });
-    panel.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState });
-    widget.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer });
+    panel.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState, mvrvZScore: state.mvrvZScore });
+    widget.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, mvrvZScore: state.mvrvZScore });
     const { shouldAlert, type } = SignalEngine.shouldAlert(marketState);
     if (shouldAlert) alertService.trigger(type);
   }
@@ -87,11 +88,18 @@ app.whenReady().then(() => {
     fetchPrice: () => market.fetchPrice(),
     fetchFearGreed: () => market.fetchFearGreed(),
     fetchHistorical: () => market.fetchHistoricalPrices(),
+    fetchMVRVZScore: market.fetchMVRVZScore.bind(market),
   });
 
   scheduler.on('price-updated', ({ price }) => {
     state.price = price;
     cache.set('price', price);
+    broadcast();
+  });
+
+  scheduler.on('mvrv-updated', ({ mvrvZScore }) => {
+    state.mvrvZScore = mvrvZScore;
+    cache.set('mvrvZScore', state.mvrvZScore);
     broadcast();
   });
 
