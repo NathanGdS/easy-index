@@ -2,14 +2,16 @@ const { EventEmitter } = require('events');
 
 const PRICE_INTERVAL_MS = 60 * 1000;
 const DAILY_MS = 24 * 60 * 60 * 1000;
+const MVRV_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const MAX_RETRIES = 2;
 
 class DataScheduler extends EventEmitter {
-  constructor({ fetchPrice, fetchFearGreed, fetchHistorical } = {}) {
+  constructor({ fetchPrice, fetchFearGreed, fetchHistorical, fetchMVRVZScore } = {}) {
     super();
     this._fetchPrice = fetchPrice;
     this._fetchFearGreed = fetchFearGreed;
     this._fetchHistorical = fetchHistorical;
+    this._fetchMVRVZScore = fetchMVRVZScore;
 
     this._running = false;
     this._priceTimer = null;
@@ -21,6 +23,9 @@ class DataScheduler extends EventEmitter {
       historical: null,
       lastDailyFetch: null,
     };
+
+    this._lastMVRVFetch = 0;
+    this._cachedMVRV = null;
   }
 
   start() {
@@ -57,6 +62,27 @@ class DataScheduler extends EventEmitter {
 
     if (this._cache.price !== null) {
       this.emit('price-updated', { price: this._cache.price });
+    }
+
+    await this._pollMVRVIfNeeded();
+  }
+
+  async _pollMVRVIfNeeded() {
+    const now = Date.now();
+    if (this._lastMVRVFetch !== 0 && (now - this._lastMVRVFetch) < MVRV_INTERVAL_MS) {
+      this.emit('mvrv-updated', { mvrvZScore: this._cachedMVRV });
+      return;
+    }
+    try {
+      // MarketDataService.fetchMVRVZScore(date) requires a date argument to build the URL path
+      const score = await this._fetchMVRVZScore(new Date());
+      this._cachedMVRV = score;
+      this._lastMVRVFetch = now;
+      this.emit('mvrv-updated', { mvrvZScore: score });
+    } catch (_) {
+      // Update _lastMVRVFetch on failure so the 4h throttle still applies
+      this._lastMVRVFetch = now;
+      this.emit('mvrv-updated', { mvrvZScore: this._cachedMVRV });
     }
   }
 
