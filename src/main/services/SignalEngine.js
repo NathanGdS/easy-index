@@ -7,7 +7,8 @@ const STATES = {
 };
 
 class SignalEngine {
-  static classifyMarketState(fearGreed, mayerMultiple) {
+  static classifyMarketState(fearGreed, mayerMultiple, mvrvZScore) {
+    // mvrvZScore reserved for v2 MVRV alert logic
     if (fearGreed == null || mayerMultiple == null) return null;
 
     if (fearGreed < 20 && mayerMultiple < 0.8) return STATES.STRONG_BUY;
