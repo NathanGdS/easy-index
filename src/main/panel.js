@@ -75,9 +75,9 @@ class PanelController {
     const { workAreaSize } = screen.getPrimaryDisplay();
     this._window = new BrowserWindow({
       width: 300,
-      height: 260,
+      height: 310,
       x: workAreaSize.width - 310,
-      y: workAreaSize.height - 270,
+      y: workAreaSize.height - 320,
       frame: false,
       resizable: false,
       alwaysOnTop: true,
