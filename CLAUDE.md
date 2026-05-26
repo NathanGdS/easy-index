@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Constitution
+
+Before executing any implementation task, analysis, debuggind, etc., read `CONSTITUTION.md` and validate the action against all active rules. Violations of CONST-001 through CONST-005 are hard blocks 
+
+Output a **Constitutional Conflict Detected** warning if a task violates any rule and:
+- stop execution
+- report the violation
+- suggest a compliant alternative
+
+If the user insists on breaking the constitution, you must interview why and add a note towards *Amendment History* + details
+
 ## Commands
 
 ```bash
