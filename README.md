@@ -1,6 +1,6 @@
 # easy-index
 
-Bitcoin market awareness in your system tray. Real-time price, Fear & Greed Index, and Mayer Multiple — with alerts that only fire when signals align.
+Bitcoin market awareness in your system tray. Real-time price, Fear & Greed Index, Mayer Multiple, and MVRV Z-Score — with alerts that only fire when signals align.
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
@@ -8,19 +8,20 @@ Bitcoin market awareness in your system tray. Real-time price, Fear & Greed Inde
 
 ## What it does
 
-Lives in the Windows system tray and shows three Bitcoin metrics at a glance:
+Lives in the Windows system tray and shows Bitcoin metrics at a glance:
 
 ```
-₿ 67K | 😨 24 | M 0.9
+🔵 ₿75K 😨24 ×0.91
 ```
 
 | Field | Meaning |
 |---|---|
-| `₿ 67K` | Current BTC price |
-| `😨 24` | Fear & Greed Index (0–100) with sentiment emoji |
-| `M 0.9` | Mayer Multiple (price / 200-day MA) |
+| `🔵` | Signal badge — market state color (🔵 Strong Buy / 🔴 Overheated / 🟠 Fearful / 🟡 Greedy / ⚪ Neutral) |
+| `₿75K` | Current BTC price |
+| `😨24` | Fear & Greed Index (0–100) with sentiment emoji |
+| `×0.91` | Mayer Multiple (price / 200-day MA) |
 
-Click the tray icon to expand a detail panel. Enable the floating widget from the tray menu for an always-on-top display.
+Hover the tray icon for a verbose tooltip. Click to expand the detail panel. Enable the floating widget from the tray menu for an always-on-top display.
 
 **Alerts fire only on combined signals** — both conditions must be true simultaneously:
 
@@ -36,10 +37,12 @@ Single-signal conditions (fear without undervaluation, or greed without overvalu
 ## Features
 
 - Live BTC price — updates every 60 seconds (CoinGecko, fallback to Binance)
-- Fear & Greed Index — fetches once per 24 hours from Alternative.me
+- Fear & Greed Index — fetches every 60 seconds
 - Mayer Multiple — computed locally from 200-day moving average (no external dependency)
-- Expandable panel — click the tray icon for formatted detail view
-- Floating widget — optional always-on-top display mode
+- MVRV Z-Score — fetches every 4 hours; zone classification (underheat / fair / overvalued / extreme)
+- Signal badge — colored tray icon prefix reflects combined market state at a glance
+- Expandable panel — click the tray icon for a detailed dark-card view with progress bars and MVRV section
+- Floating widget — optional always-on-top display with compact MVRV display
 - Offline resilience — persistent local cache survives restarts and network failures
 - Retry logic — up to 2 automatic retries on fetch failure
 
@@ -77,17 +80,18 @@ The app starts minimized to the system tray. Right-click the tray icon to toggle
 ```
 MarketDataService (APIs)
     ↓
-DataScheduler (polls every 60s / 24h)
+DataScheduler (polls every 60s / 24h / 4h for MVRV)
     ↓
 index.js (orchestrator)
-    ├→ CacheStore          — persist state to disk
-    ├→ MayerMultipleEngine — compute MA200 + multiple
-    ├→ SignalEngine         — classify market state
-    ├→ AlertService         — fire system notifications
+    ├→ CacheStore           — persist state to disk
+    ├→ MayerMultipleEngine  — compute MA200 + multiple
+    ├→ MVRVZScoreEngine     — fetch + zone classification
+    ├→ SignalEngine          — classify market state
+    ├→ AlertService          — fire system notifications
     └→ Broadcast
-        ├→ TrayController  — system tray text
-        ├→ PanelController — click-to-expand window
-        └→ WidgetController — floating widget
+        ├→ TrayController   — system tray badge + label
+        ├→ PanelController  — click-to-expand dark card panel
+        └→ WidgetController — floating always-on-top widget
 ```
 
 All state flows through a single broadcast function; UI components are passive receivers.
@@ -96,11 +100,12 @@ All state flows through a single broadcast function; UI components are passive r
 
 ## Data sources
 
-| Data | Primary | Fallback |
-|---|---|---|
-| BTC Price | CoinGecko | Binance |
-| Fear & Greed | Alternative.me | — |
-| Historical Prices (200d) | CoinGecko | — |
+| Data | Primary | Fallback | Poll interval |
+|---|---|---|---|
+| BTC Price | CoinGecko | Binance | 60s |
+| Fear & Greed | Alternative.me | — | 60s |
+| Historical Prices (200d) | CoinGecko | — | 24h |
+| MVRV Z-Score | bitcoin-data.com | — | 4h |
 
 All requests use an 8-second timeout.
 
