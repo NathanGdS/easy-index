@@ -6,6 +6,7 @@ const { WidgetController } = require('./widget');
 const { DataScheduler } = require('./services/DataScheduler');
 const { MarketDataService } = require('./services/MarketDataService');
 const { MayerMultipleEngine } = require('./services/MayerMultipleEngine');
+const { MVRVZScoreEngine } = require('./services/MVRVZScoreEngine');
 const { SignalEngine } = require('./services/SignalEngine');
 const { AlertService } = require('./services/AlertService');
 const { CacheStore } = require('./services/CacheStore');
@@ -36,6 +37,11 @@ app.whenReady().then(() => {
     return mayerMultiple;
   }
 
+  function currentMvrvZone() {
+    const zone = MVRVZScoreEngine.classifyZone(state.mvrvZScore);
+    return { mvrvLabel: zone ? zone.label : '—', mvrvColor: zone ? zone.color : 'gray' };
+  }
+
   let updater = null;
   try {
     const { autoUpdater } = require('electron-updater');
@@ -64,7 +70,8 @@ app.whenReady().then(() => {
       const mayer = currentMayer();
       const fg = state.fearGreed?.value ?? null;
       const marketState = SignalEngine.classifyMarketState(fg, mayer);
-      panel.toggle({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState, mvrvZScore: state.mvrvZScore });
+      const { mvrvLabel, mvrvColor } = currentMvrvZone();
+      panel.toggle({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState, mvrvZScore: state.mvrvZScore, mvrvLabel, mvrvColor });
     },
     onToggleWidget: (enabled) => {
       if (enabled) widget.show();
@@ -75,11 +82,12 @@ app.whenReady().then(() => {
   function broadcast() {
     const mayer = currentMayer();
     const fg = state.fearGreed?.value ?? null;
+    const { mvrvLabel, mvrvColor } = currentMvrvZone();
 
     const marketState = SignalEngine.classifyMarketState(fg, mayer);
     tray.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState });
-    panel.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState, mvrvZScore: state.mvrvZScore });
-    widget.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, mvrvZScore: state.mvrvZScore });
+    panel.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, marketState, mvrvZScore: state.mvrvZScore, mvrvLabel, mvrvColor });
+    widget.update({ price: state.price, fearGreed: fg, mayerMultiple: mayer, mvrvZScore: state.mvrvZScore, mvrvColor });
     const { shouldAlert, type } = SignalEngine.shouldAlert(marketState);
     if (shouldAlert) alertService.trigger(type);
   }

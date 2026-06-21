@@ -4,14 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Constitution
 
-Before executing any implementation task, analysis, debuggind, etc., read `CONSTITUTION.md` and validate the action against all active rules. Violations of CONST-001 through CONST-005 are hard blocks 
-
-Output a **Constitutional Conflict Detected** warning if a task violates any rule and:
-- stop execution
-- report the violation
-- suggest a compliant alternative
-
-If the user insists on breaking the constitution, you must interview why and add a note towards *Amendment History* + details
+See `constitution-keeper` skill (auto-triggers before implementation/analysis/debugging tasks).
 
 ## Commands
 
@@ -62,7 +55,7 @@ SignalEngine → AlertService                           (combined-signal alerts,
 
 Tests live in `tests/`. Electron is fully mocked via `tests/__mocks__/electron.js` — Jest maps `require('electron')` there automatically (see `moduleNameMapper` in `package.json`).
 
-~53 tests cover the four pure/injectable services: `MayerMultipleEngine`, `SignalEngine`, `DataScheduler`, `AlertService`. UI controllers (`tray`, `panel`, `widget`) have no test coverage yet.
+109 tests across 11 suites, including `TrayController`, `PanelController`, and `WidgetController` — all three UI controllers now have coverage.
 
 `DataScheduler` receives fetch functions by injection, so tests pass in jest mock functions without any HTTP.
 
