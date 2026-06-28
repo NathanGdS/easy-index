@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# On Windows, npm spawns bash without HOME pointing to the user profile,
+# so git can't find ~/.gitconfig. Fix that before any git calls.
+export HOME="${USERPROFILE:-$HOME}"
+
 VERSION="${1:-}"
 
 if [[ -z "$VERSION" ]]; then
