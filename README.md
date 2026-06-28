@@ -2,7 +2,7 @@
 
 Bitcoin market awareness in your system tray. Real-time price, Fear & Greed Index, Mayer Multiple, and MVRV Z-Score — with alerts that only fire when signals align.
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
+![Version](https://img.shields.io/badge/version-0.2.2-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
 ---
 
