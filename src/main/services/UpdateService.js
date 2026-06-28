@@ -8,8 +8,8 @@ class UpdateService {
   }
 
   startPeriodicCheck(intervalMs = 60 * 60 * 1000) {
-    this.checkForUpdates();
-    setInterval(() => this.checkForUpdates(), intervalMs);
+    this._updater.checkForUpdates();
+    setInterval(() => this._updater.checkForUpdates(), intervalMs);
   }
 
   onUpdateAvailable(cb) {
