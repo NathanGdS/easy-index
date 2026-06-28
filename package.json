@@ -9,7 +9,8 @@
     "test:watch": "jest --watch --runInBand",
     "build": "electron-builder",
     "build:all": "electron-builder --win --mac --linux",
-    "build:ci": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --dir || true"
+    "build:ci": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --dir || true",
+    "release": "bash scripts/release.sh"
   },
   "keywords": [],
   "author": "Nathan G. Santos",
