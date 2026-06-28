@@ -12,14 +12,17 @@ const { AlertService } = require('./services/AlertService');
 const { CacheStore } = require('./services/CacheStore');
 const { StartupService } = require('./services/StartupService');
 const { UpdateService } = require('./services/UpdateService');
+const { NotificationPreferences } = require('./services/NotificationPreferences');
 app.on('window-all-closed', () => { /* keep alive */ });
 
 app.whenReady().then(() => {
   const cache = new CacheStore();
+  const prefs = new NotificationPreferences({ store: cache });
   const startupService = new StartupService({ app, cache });
   const market = new MarketDataService();
   const alertService = new AlertService({
     notify: ({ title, body }) => new Notification({ title, body }).show(),
+    prefs,
   });
 
   let state = {
@@ -66,6 +69,8 @@ app.whenReady().then(() => {
     onQuit: () => app.quit(),
     startupService,
     onCheckForUpdates: updater ? () => updater.checkForUpdates() : null,
+    onToggleMute: (type) => prefs.toggleMute(type),
+    getMuted: (type) => prefs.isMuted(type),
     onTogglePanel: () => {
       const mayer = currentMayer();
       const fg = state.fearGreed?.value ?? null;
