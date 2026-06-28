@@ -1,6 +1,6 @@
 {
   "name": "easy-index",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Bitcoin market awareness tray app",
   "main": "src/main/index.js",
   "scripts": {
