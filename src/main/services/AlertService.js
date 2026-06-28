@@ -10,20 +10,17 @@ const ALERT_MESSAGES = {
 };
 
 class AlertService {
-  constructor({ notify, cooldownMs = 3600000 } = {}) {
+  constructor({ notify, prefs } = {}) {
     this._notify = notify;
-    this._cooldownMs = cooldownMs;
-    this._lastFired = {};
+    this._prefs = prefs;
   }
 
   trigger(type) {
     if (!type || !ALERT_MESSAGES[type]) return;
+    if (this._prefs.isMuted(type)) return;
+    if (this._prefs.isOnCooldown(type)) return;
 
-    const now = Date.now();
-    const last = this._lastFired[type] || 0;
-    if (now - last < this._cooldownMs) return;
-
-    this._lastFired[type] = now;
+    this._prefs.setLastFired(type, Date.now());
     this._notify({ type, ...ALERT_MESSAGES[type] });
   }
 }

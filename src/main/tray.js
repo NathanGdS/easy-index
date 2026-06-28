@@ -76,7 +76,7 @@ function formatTooltip(price, fearGreed, mayerMultiple) {
 }
 
 class TrayController {
-  constructor({ onQuit, onTogglePanel, onToggleWidget, startupService, onCheckForUpdates }) {
+  constructor({ onQuit, onTogglePanel, onToggleWidget, startupService, onCheckForUpdates, onToggleMute, getMuted }) {
     const iconPath = path.join(__dirname, '../../src/assets/bitcoin.png');
     const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
     this._tray = new Tray(icon);
@@ -86,6 +86,8 @@ class TrayController {
     this._widgetEnabled = false;
     this._startupService = startupService || null;
     this._onCheckForUpdates = onCheckForUpdates || null;
+    this._onToggleMute = onToggleMute || null;
+    this._getMuted = getMuted || null;
 
     this._tray.on('click', () => this._onTogglePanel());
     this._buildMenu();
@@ -117,6 +119,26 @@ class TrayController {
 
     if (this._onCheckForUpdates) {
       items.push({ label: 'Check for Updates', click: () => this._onCheckForUpdates() });
+    }
+
+    if (this._onToggleMute && this._getMuted) {
+      items.push({
+        label: 'Notifications',
+        submenu: [
+          {
+            label: 'Strong Buy Alert',
+            type: 'checkbox',
+            checked: !this._getMuted('STRONG_BUY'),
+            click: () => { this._onToggleMute('STRONG_BUY'); this._buildMenu(); },
+          },
+          {
+            label: 'Overheated Alert',
+            type: 'checkbox',
+            checked: !this._getMuted('OVERHEATED'),
+            click: () => { this._onToggleMute('OVERHEATED'); this._buildMenu(); },
+          },
+        ],
+      });
     }
 
     items.push({ type: 'separator' });

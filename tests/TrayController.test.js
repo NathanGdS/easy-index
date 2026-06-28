@@ -39,6 +39,63 @@ describe('TrayController menu', () => {
     item.click();
     expect(cb).toHaveBeenCalledTimes(1);
   });
+
+  it('includes Notifications submenu when onToggleMute and getMuted provided', () => {
+    makeController({ onToggleMute: jest.fn(), getMuted: jest.fn(() => false) });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const item = template.find(i => i.label === 'Notifications');
+    expect(item).toBeDefined();
+    expect(item.submenu).toHaveLength(2);
+  });
+
+  it('omits Notifications submenu when onToggleMute not provided', () => {
+    makeController();
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const item = template.find(i => i.label === 'Notifications');
+    expect(item).toBeUndefined();
+  });
+
+  it('Strong Buy Alert is checked when not muted', () => {
+    const getMuted = jest.fn(() => false);
+    makeController({ onToggleMute: jest.fn(), getMuted });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const submenu = template.find(i => i.label === 'Notifications').submenu;
+    expect(submenu.find(i => i.label === 'Strong Buy Alert').checked).toBe(true);
+  });
+
+  it('Strong Buy Alert is unchecked when muted', () => {
+    const getMuted = jest.fn(type => type === 'STRONG_BUY');
+    makeController({ onToggleMute: jest.fn(), getMuted });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const submenu = template.find(i => i.label === 'Notifications').submenu;
+    expect(submenu.find(i => i.label === 'Strong Buy Alert').checked).toBe(false);
+  });
+
+  it('Overheated Alert is unchecked when muted', () => {
+    const getMuted = jest.fn(type => type === 'OVERHEATED');
+    makeController({ onToggleMute: jest.fn(), getMuted });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const submenu = template.find(i => i.label === 'Notifications').submenu;
+    expect(submenu.find(i => i.label === 'Overheated Alert').checked).toBe(false);
+  });
+
+  it('click Strong Buy Alert calls onToggleMute with STRONG_BUY', () => {
+    const onToggleMute = jest.fn();
+    makeController({ onToggleMute, getMuted: jest.fn(() => false) });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const submenu = template.find(i => i.label === 'Notifications').submenu;
+    submenu.find(i => i.label === 'Strong Buy Alert').click();
+    expect(onToggleMute).toHaveBeenCalledWith('STRONG_BUY');
+  });
+
+  it('click Overheated Alert calls onToggleMute with OVERHEATED', () => {
+    const onToggleMute = jest.fn();
+    makeController({ onToggleMute, getMuted: jest.fn(() => false) });
+    const [template] = Menu.buildFromTemplate.mock.calls[0];
+    const submenu = template.find(i => i.label === 'Notifications').submenu;
+    submenu.find(i => i.label === 'Overheated Alert').click();
+    expect(onToggleMute).toHaveBeenCalledWith('OVERHEATED');
+  });
 });
 
 describe('formatTrayLabel', () => {
