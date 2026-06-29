@@ -35,9 +35,23 @@ describe('UpdateService', () => {
     expect(mockAutoUpdater.on).toHaveBeenCalledWith('error', cb);
   });
 
-  it('onUpdateNotAvailable registers listener for update-not-available event', () => {
+  it('onUpdateNotAvailable only calls cb when triggered by manual check', () => {
     const cb = jest.fn();
     service.onUpdateNotAvailable(cb);
-    expect(mockAutoUpdater.on).toHaveBeenCalledWith('update-not-available', cb);
+
+    const [[, wrapper]] = mockAutoUpdater.on.mock.calls.filter(([e]) => e === 'update-not-available');
+
+    // automatic check: cb must NOT fire
+    wrapper();
+    expect(cb).not.toHaveBeenCalled();
+
+    // manual check: set flag then fire event
+    service.checkForUpdates();
+    wrapper();
+    expect(cb).toHaveBeenCalledTimes(1);
+
+    // flag resets: next automatic check must NOT fire again
+    wrapper();
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 });
