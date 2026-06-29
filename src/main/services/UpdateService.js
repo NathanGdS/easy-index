@@ -1,9 +1,11 @@
 class UpdateService {
   constructor({ autoUpdater }) {
     this._updater = autoUpdater;
+    this._manualCheck = false;
   }
 
   checkForUpdates() {
+    this._manualCheck = true;
     this._updater.checkForUpdatesAndNotify();
   }
 
@@ -21,7 +23,10 @@ class UpdateService {
   }
 
   onUpdateNotAvailable(cb) {
-    this._updater.on('update-not-available', cb);
+    this._updater.on('update-not-available', () => {
+      if (this._manualCheck) cb();
+      this._manualCheck = false;
+    });
   }
 
   onError(cb) {
